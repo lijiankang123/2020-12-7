@@ -15,28 +15,26 @@
 
     <!-- 顶部导航栏开始 -->
     <mt-navbar v-model="active">
-      <mt-tab-item id="1">ui</mt-tab-item>
-      <mt-tab-item id="2">电商</mt-tab-item>
-      <mt-tab-item id="3">设计</mt-tab-item>
+      <mt-tab-item  v-for="(item,index) of category" :key="index" :id="item.id.toString()">{{item.category_name}}</mt-tab-item>
     </mt-navbar>
     <!-- 顶部导航栏结束 -->
 
     <!-- 面板开始 -->
     <div class="main">
-      <mt-tab-container v-model="selected">
-      <mt-tab-container-item id="item01">
+      <mt-tab-container>
+      <mt-tab-container-item>
         <div class="my_container">
-          <div class="articleItem" v-for="(k,i) of 10" :key="i">
-            <router-link :to='`/article/${i}`'>
+          <div class="articleItem" v-for="(item,index) of articles" :key="index">
+            <router-link :to='`/article/${item.id}`'>
           <div class="articleItem-header">
-          <p>Figma会取代Sketch的地位吗？来看这篇超全面的对比分析！</p>
+          <p>{{item.subject}}</p>
         </div>
         <div class="rticleItem-wrapper">
-          <div class="articleImg">
-          <img src="../assets/images/articles/4-methods-to-make-competitive-interactive-works-b.jpg" alt="">
+          <div class="articleImg" v-if="item.image!=null">
+          <img v-lazy="item.image" alt="">
           </div>
           <div class="articleDes">
-            <p>带浮夸绿多多多多多多多多多多多多多多多多多多多多多多多多多多多少时诵诗书所所所所所所所所所所所所所所所所所所所所所所反反复复付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付付</p>
+            <p>{{item.description}}</p>
           </div>
         </div>
         </router-link>
@@ -125,18 +123,25 @@ export default {
       active:"1",
       selected:"item01",
       selectedTed:"index",
-      category:[]
+      category:[],
+      articles:[],
     }
   },
   watch:{
     active(val){
-      if(val=="1"){
-        this.selected="item01"
-      }else if(val=="2"){
-        this.selected="item02"
-      }else if(val=="3"){
-        this.selected="item03"
-      }
+      this.articles = [];
+     this.axios.get("/articles",{params:{
+       id:val
+     }}).then(res=>{
+       let articles = res.data.results;
+      //  console.log(articles);
+       articles.forEach(article=>{
+         if(article.image!=null){
+           article.image = require('../assets/images/articles/' + article.image)
+         }
+         this.articles.push(article);
+       })
+     })
     },
     selectedTed(val){
       if(val=="index"){
@@ -146,14 +151,22 @@ export default {
       }
     }
   },
-  // mounted(){
-  //   this.axios.get("/category").then(res=>{
-  //     let results=res.data.results;
-  //     this.category=results;
-  //   })
-  // }
+  // 获取文章分类接口
   mounted(){
-    
+    this.axios.get("/category").then(res=>{
+      // console.log(res.data.results);
+      this.category = res.data.results;
+    });
+    this.axios.get("/articles",{params:{id:this.active}}).then(res=>{
+      console.log(res.data);
+      let articles = res.data.results;
+      articles.forEach(article => {
+        if(article.image!=null){ 
+          article.image = require('../assets/images/articles/' + article.image);
+        }
+        this.articles.push(article);
+      });
+    })
   }
 }
 </script>

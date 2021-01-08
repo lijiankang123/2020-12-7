@@ -19,7 +19,7 @@ const pool = mysql.createPool({
   connectionLimit:15
 })
 
-server.get("category",(req,res)=>{
+server.get("/category",(req,res)=>{
   let sql="SELECT id,category_name FROM xzqa_category ORDER BY id";
   pool.query(sql,(error,results)=>{
     if(error) throw error;
@@ -30,3 +30,13 @@ server.get("category",(req,res)=>{
     })
   })
 })
+
+server.get("/articles",(req,res)=>{
+  let id = req.query.id;
+  let sql = "SELECT id,subject,image,description FROM xzqa_article WHERE category_id=?";
+  pool.query(sql,[id],(error,results)=>{
+    if(error) throw error;
+    res.send({code:200,message:"查询成功",results:results})
+  })
+})
+server.listen(3000);
