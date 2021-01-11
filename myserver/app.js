@@ -33,8 +33,18 @@ server.get("/category",(req,res)=>{
 
 server.get("/articles",(req,res)=>{
   let id = req.query.id;
-  let sql = "SELECT id,subject,image,description FROM xzqa_article WHERE category_id=?";
-  pool.query(sql,[id],(error,results)=>{
+  let page = req.query.page;
+  if(!id){
+    res.send({code:201,message:'NO ID',result:null});
+    return
+  }
+  if(!page){
+    page = 1;
+  }
+  let pagesize = 10;
+  let offset = (page - 1) * pagesize;
+  let sql = "SELECT id,subject,image,description FROM xzqa_article WHERE category_id=? LIMIT ?,?";
+  pool.query(sql,[id,offset,pagesize],(error,results)=>{
     if(error) throw error;
     res.send({code:200,message:"查询成功",results:results})
   })

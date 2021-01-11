@@ -21,7 +21,10 @@
 
     <!-- 面板开始 -->
     <div class="main">
-      <mt-tab-container>
+      <mt-tab-container
+        infinite-scroll-distance="10"
+        v-infinite-scroll="lodeMore"
+        infinite-scroll-disabled="busy">
       <mt-tab-container-item>
         <div class="my_container">
           <div class="articleItem" v-for="(item,index) of articles" :key="index">
@@ -125,13 +128,15 @@ export default {
       selectedTed:"index",
       category:[],
       articles:[],
+      page:1,
+      busy:false
     }
   },
   watch:{
     active(val){
       this.articles = [];
      this.axios.get("/articles",{params:{
-       id:val
+       id:val,page:1
      }}).then(res=>{
        let articles = res.data.results;
       //  console.log(articles);
@@ -157,7 +162,7 @@ export default {
       // console.log(res.data.results);
       this.category = res.data.results;
     });
-    this.axios.get("/articles",{params:{id:this.active}}).then(res=>{
+    this.axios.get("/articles",{params:{id:this.active,page:1}}).then(res=>{
       console.log(res.data);
       let articles = res.data.results;
       articles.forEach(article => {
@@ -167,6 +172,30 @@ export default {
         this.articles.push(article);
       });
     })
+  },
+  methods:{
+    // 分页和加载更多
+    lodeMore(){
+       this.page++;
+       this.busy = true;
+       this.$indicator.open({
+         'text':'加载中...',
+         spinnerType:'double-bounce'
+       })
+       this.axios.get("/articles",{params:{
+         id:this.active,page:this.page
+       }}).then(res=>{
+         let articles = res.data.results;
+         articles.forEach(article=>{
+           if(article.image!=null){
+           article.image = require("../assets/images/articles/" + article.image);
+         }
+         this.articles.push(article)
+         })
+         this.busy = false;
+         this.$indicator.close();
+       })
+    }
   }
 }
 </script>
